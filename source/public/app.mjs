@@ -449,7 +449,7 @@ async function sync() {
     await refresh();
 
     notify(
-      'Saved to Notion and linked to today's daily record.'
+      "Saved to Notion and linked to today's daily record."
     );
   } catch (error) {
     notify(error.message);
