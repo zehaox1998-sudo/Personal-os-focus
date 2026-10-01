@@ -17,7 +17,7 @@ async function unique(rows,what){if(rows.length>1)throw new FocusError(`${what} 
 async function dayFor(date,n,receipts){
  let found=await unique(await n.days(date),"today's daily record");if(found)return found.id;
  const key='day/'+date,claimToken=randomUUID(),result=await receipts.setJSON(key,{phase:'creating',claimToken},{onlyIfNew:true});
- if(!result.modified){found=await unique(await n.days(date),"today's daily record");if(found)return found.id;throw new FocusError('today's daily record的创建结果待核对。请稍后重试；若持续出现，请检查后台创建回执。');}
+ if(!result.modified){found=await unique(await n.days(date),"today's daily record");if(found)return found.id;throw new FocusError("Today's daily record creation result needs verification. Try again later; if this continues, check the backend creation receipt.");}
  // Verify persisted claim before crossing the external side-effect boundary.
  if((await receipts.get(key,{type:'json'}))?.claimToken!==claimToken)throw new FocusError('The save service could not confirm the daily-record creation lock. Try again later.',503);
  found=await unique(await n.days(date),"today's daily record");if(found)return found.id;
