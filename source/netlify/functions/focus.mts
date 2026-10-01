@@ -25,13 +25,13 @@ export default async (req:Request,context:Context)=>{
    'FOCUS_ACCESS_KEY'
   ].every(env)){
    return json({
-    message:'自动保存尚未启用，需完成后台的 Notion 连接与个人账户配置。记录可先保留在此浏览器。'
+    message:'Auto-save is not enabled yet. Complete the Notion connection and personal account configuration. Records can remain in this browser for now.'
    },503);
   }
 
   const auth=req.headers.get('authorization')||'';
   if(auth!==`Bearer ${env('FOCUS_ACCESS_KEY')}`){
-   return json({message:'请先输入已授权的访问密钥。'},401);
+   return json({message:'Enter the authorized access key first.'},401);
   }
 
   const part=new URL(req.url).pathname.split('/').pop();
@@ -43,20 +43,20 @@ export default async (req:Request,context:Context)=>{
 
   if(req.method==='POST'&&part==='sessions'){
    if(req.headers.get('origin')!==new URL(req.url).origin){
-    return json({message:'请求来源不匹配，请在计时器页面操作。'},403);
+    return json({message:'Request origin mismatch. Use the timer page directly.'},403);
    }
 
    if(!req.headers.get('content-type')?.startsWith('application/json')){
-    return json({message:'请求格式不正确。'},415);
+    return json({message:'Invalid request format.'},415);
    }
 
    const body=await req.text();
    if(body.length>4096){
-    return json({message:'记录过大。'},413);
+    return json({message:'Record payload is too large.'},413);
    }
 
    if(context.deploy.context!=='production'){
-    return json({message:'预览环境不写入正式 Notion。'},403);
+    return json({message:'Preview deployments do not write to the production Notion workspace.'},403);
    }
 
    const receipts=context.deploy.context==='production'
@@ -66,11 +66,11 @@ export default async (req:Request,context:Context)=>{
    return json(await saveSession(JSON.parse(body),{notion,receipts}));
   }
 
-  return json({message:'不存在这个操作。'},405);
+  return json({message:'Unknown operation.'},405);
 
  }catch(e){
   if(e instanceof FocusError)return json({message:e.message},e.status);
-  return json({message:'保存服务暂时不可用，记录仍保留在本地。'},503);
+  return json({message:'The save service is temporarily unavailable. Records remain saved locally.'},503);
  }
 };
 

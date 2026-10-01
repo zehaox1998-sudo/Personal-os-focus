@@ -9,8 +9,8 @@ export function ranges(now=Date.now()) {
   return {today:day,week:d.toISOString().slice(0,10),month:day.slice(0,7)+'-01',year:day.slice(0,4)+'-01-01'};
 }
 export function newSession({minutes,projectId,taskId=null}, now=Date.now(), id=crypto.randomUUID()) {
-  if(!Number.isInteger(minutes)||minutes<1||minutes>240) throw Error('时长需为 1—240 分钟的整数。');
-  if(!projectId) throw Error('请选择项目，或明确选择「不关联项目」。');
+  if(!Number.isInteger(minutes)||minutes<1||minutes>240) throw Error('Duration must be an integer from 1 to 240 minutes.');
+  if(!projectId) throw Error('Please select a Project or choose “No project”.');
   return {id,startedAt:now,checkpoint:now,elapsedMs:0,targetMs:minutes*60000,status:'running',projectId:projectId==='none'?null:projectId,taskId,noProject:projectId==='none'};
 }
 // A long timer gap may be a suspended tab or device sleep. Never infer focus silently.
@@ -35,9 +35,9 @@ export function resume(s,now=Date.now()) {
 }
 export function finish(s,now=Date.now()) {
   const next=tick(s,now);
-  if(next.status==='review') throw Error('请先确认离开期间是否计入。');
+  if(next.status==='review') throw Error('Please confirm whether the gap should be included first.');
   const duration=Math.floor(next.elapsedMs/1000);
-  if(duration<1) throw Error('还没有可保存的时长，请至少计时 1 秒。');
+  if(duration<1) throw Error('There is no duration to save yet. Run the timer for at least 1 second.');
   return {id:next.id,startedAt:new Date(next.startedAt).toISOString(),endedAt:new Date(now).toISOString(),duration,projectId:next.projectId,taskId:next.taskId,noProject:next.noProject};
 }
 export function totals(rows,now=Date.now()) {

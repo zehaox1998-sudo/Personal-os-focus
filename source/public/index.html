@@ -1,34 +1,42 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>专注 · Personal OS</title><link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="./style.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Focus · Personal OS</title><link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="./style.css"></head>
 <body><main>
-<header><div><span class="eyebrow">PERSONAL OS / FOCUS</span><h1>留一段时间，做一件事。</h1></div><button id="account" class="quiet">连接记录</button></header>
+<header><div><span class="eyebrow">PERSONAL OS / FOCUS</span></div><button id="account" class="quiet">Connect</button></header>
 <div id="notice" role="status" aria-live="polite"></div>
-<section class="timer-card" aria-label="专注计时器">
- <div class="selection"><label>这次专注于<select id="project" required><option value="">选择项目</option><option value="none">不关联项目</option></select></label><label>具体行动 <span class="subtle">可选</span><select id="task"><option value="">只关联项目</option></select></label></div>
- <div class="dial-wrap"><div id="dial" class="dial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="107"/><circle id="progress" cx="120" cy="120" r="107"/></svg><div class="dial-text"><span id="phase">准备开始</span><strong id="clock" aria-label="剩余时间">25:00</strong><span id="elapsed">专注于眼前这一件事</span></div></div></div>
- <div id="recovery" class="recovery" hidden><p id="recovery-text"></p><div><button id="exclude">不计入，保持暂停</button><button id="include" class="quiet">计入离开时间</button></div></div>
- <div class="durations" aria-label="计划时长"><button data-minutes="25" class="selected">25 分钟</button><button data-minutes="45">45 分钟</button><button data-minutes="60">60 分钟</button><label class="custom"><input id="minutes" aria-label="自定义分钟" type="number" min="1" max="240" step="1" value="25">分钟</label></div>
- <div class="controls"><button id="start" class="primary">开始专注</button><button id="pause" hidden>暂停</button><button id="finish" class="quiet" hidden>结束并保存</button><button id="discard" class="quiet" hidden>放弃本段</button></div>
- <div class="timer-foot"><label><input type="checkbox" id="sound" checked> 结束提示音</label><span>暂停不计时 · 不会自动完成行动</span></div>
+<section class="timer-card" aria-label="Focus timer">
+ <div class="selection"><label><select id="project" aria-label="projet" required><option value="">projet</option><option value="none">No project</option></select></label><label><select id="task" aria-label="action"><option value="">action</option></select></label></div>
+ <div class="focus-layout">
+  <div class="focus-main">
+   <div class="dial-wrap"><div id="dial" class="dial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="107"/><circle id="progress" cx="120" cy="120" r="107"/></svg><div class="dial-text"><span id="phase">Ready</span><strong id="clock" aria-label="Time remaining">25:00</strong><span id="elapsed">Focus on one thing</span></div></div></div>
+   <div id="recovery" class="recovery" hidden><p id="recovery-text"></p><div><button id="exclude">Exclude gap</button><button id="include" class="quiet">Include gap</button></div></div>
+   <div class="durations" aria-label="Planned duration"><button data-minutes="25" class="selected">25 min</button><button data-minutes="45">45 min</button><button data-minutes="60">60 min</button><label class="custom"><input id="minutes" aria-label="Custom minutes" type="number" min="1" max="240" step="1" value="25">min</label></div>
+   <div class="controls"><button id="start" class="primary">Start focus</button><button id="pause" hidden>Pause</button><button id="finish" class="quiet" hidden>Finish & save</button><button id="discard" class="quiet" hidden>Discard session</button></div>
+  </div>
+  <section class="records" aria-label="Saved focus statistics">
+   <div class="section-title"><h2>Focus totals</h2><span id="stat-status">Connect to load saved Notion sessions</span></div>
+   <div class="stats"><div><span>Today</span><strong id="today">—</strong></div><div><span>This week</span><strong id="week">—</strong></div><div><span>This month</span><strong id="month">—</strong></div><div><span>This year</span><strong id="year">—</strong></div></div>
+   <div id="pending-box" hidden><span id="pending-text"></span><div><button id="retry" class="quiet">Retry save</button><button id="export" class="quiet">Export backup</button></div></div>
+  </section>
+ </div>
+ <div class="timer-foot"><label><input type="checkbox" id="sound" checked> End chime</label><span>Paused time is not counted · Actions are not auto-completed</span></div>
 </section>
-<section class="records" aria-label="已保存统计"><div class="section-title"><h2>专注积累</h2><span id="stat-status">连接后显示 Notion 已保存记录</span></div><div class="stats"><div><span>今日</span><strong id="today">—</strong></div><div><span>本周</span><strong id="week">—</strong></div><div><span>本月</span><strong id="month">—</strong></div><div><span>本年</span><strong id="year">—</strong></div></div><div id="pending-box" hidden><span id="pending-text"></span><div><button id="retry" class="quiet">重试保存</button><button id="export" class="quiet">导出备份</button></div></div></section>
-<footer>按巴黎时间统计；跨午夜归开始日，周一为每周起点。<br>后台或电脑休眠时提示音可能延迟。<a href="./" target="_blank" rel="noopener">在独立窗口打开 ↗</a></footer>
+<footer>Paris time · Sessions crossing midnight belong to their start date · Weeks begin on Monday.<br>Chimes may be delayed while the page or computer is asleep.<a href="./" target="_blank" rel="noopener">Open in a separate window ↗</a></footer>
 <dialog id="login-dialog">
  <form id="login-form">
-  <h2>连接你的专注记录</h2>
-  <p>输入你的个人访问密钥。密钥只保存在此浏览器中，不会写入网页源码。</p>
+  <h2>Connect your focus records</h2>
+  <p>Enter your personal access key. It is stored only in this browser and is never written into the page source.</p>
 
   <label>
-   访问密钥
+   Access key
    <input id="password" type="password" autocomplete="current-password" required>
   </label>
 
   <p id="login-error" role="alert"></p>
 
   <div>
-   <button type="button" id="close-login" class="quiet">稍后连接</button>
-   <button id="login-submit" class="primary" type="submit">连接</button>
-   <button id="logout" type="button" hidden>断开连接</button>
+   <button type="button" id="close-login" class="quiet">Connect later</button>
+   <button id="login-submit" class="primary" type="submit">Connect</button>
+   <button id="logout" type="button" hidden>Disconnect</button>
   </div>
  </form>
 </dialog>
