@@ -13,5 +13,23 @@
 </section>
 <section class="records" aria-label="已保存统计"><div class="section-title"><h2>专注积累</h2><span id="stat-status">连接后显示 Notion 已保存记录</span></div><div class="stats"><div><span>今日</span><strong id="today">—</strong></div><div><span>本周</span><strong id="week">—</strong></div><div><span>本月</span><strong id="month">—</strong></div><div><span>本年</span><strong id="year">—</strong></div></div><div id="pending-box" hidden><span id="pending-text"></span><div><button id="retry" class="quiet">重试保存</button><button id="export" class="quiet">导出备份</button></div></div></section>
 <footer>按巴黎时间统计；跨午夜归开始日，周一为每周起点。<br>后台或电脑休眠时提示音可能延迟。<a href="./" target="_blank" rel="noopener">在独立窗口打开 ↗</a></footer>
-<dialog id="login-dialog"><form id="login-form"><h2>连接你的专注记录</h2><p>仅限已授权的个人账户。计时可先使用；未连接时，记录保留在此浏览器中。</p><label>邮箱<input id="email" type="email" autocomplete="username" required></label><label>密码<input id="password" type="password" autocomplete="current-password" required></label><p id="login-error" role="alert"></p><div><button type="button" id="close-login" class="quiet">稍后连接</button><button id="login-submit" class="primary" type="submit">登录</button><button id="logout" type="button" hidden>退出登录</button></div></form></dialog>
+<dialog id="login-dialog">
+ <form id="login-form">
+  <h2>连接你的专注记录</h2>
+  <p>输入你的个人访问密钥。密钥只保存在此浏览器中，不会写入网页源码。</p>
+
+  <label>
+   访问密钥
+   <input id="password" type="password" autocomplete="current-password" required>
+  </label>
+
+  <p id="login-error" role="alert"></p>
+
+  <div>
+   <button type="button" id="close-login" class="quiet">稍后连接</button>
+   <button id="login-submit" class="primary" type="submit">连接</button>
+   <button id="logout" type="button" hidden>断开连接</button>
+  </div>
+ </form>
+</dialog>
 <script type="module" src="./app.mjs"></script></main></body></html>
