@@ -143,11 +143,6 @@ function render() {
 
   $('discard').hidden = !active;
   $('discard').disabled = !ready;
-  if (!active && discardArmed) {
-    discardArmed = false;
-    clearTimeout(discardTimer);
-    $('discard').textContent = 'Discard session';
-  }
 
   $('project').disabled = active || !ready;
   $('task').disabled = active || !ready;
@@ -501,31 +496,10 @@ $('pause').onclick = () => {
 };
 
 
-let discardArmed = false;
-let discardTimer = null;
-
 $('discard').onclick = () => {
   if (!data.session) return;
 
-  if (!discardArmed) {
-    discardArmed = true;
-    $('discard').textContent = 'Confirm discard';
-    notify('Click “Confirm discard” again to remove this session without saving.');
-
-    clearTimeout(discardTimer);
-    discardTimer = setTimeout(() => {
-      discardArmed = false;
-      $('discard').textContent = 'Discard session';
-      render();
-    }, 5000);
-
-    return;
-  }
-
-  clearTimeout(discardTimer);
-  discardArmed = false;
   data.session = null;
-
   persist();
   notify('Session discarded.');
   render();
