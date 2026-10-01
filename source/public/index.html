@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>专注 · Personal OS</title><link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="./style.css"></head>
 <body><main>
-<header><div><span class="eyebrow">PERSONAL OS / FOCUS</span><h1>留一段时间，做一件事。</h1></div><button id="account" class="quiet">连接记录</button></header>
+<header><div><span class="eyebrow">PERSONAL OS / FOCUS</span></div><button id="account" class="quiet">连接记录</button></header>
 <div id="notice" role="status" aria-live="polite"></div>
 <section class="timer-card" aria-label="专注计时器">
- <div class="selection"><label>这次专注于<select id="project" required><option value="">选择项目</option><option value="none">不关联项目</option></select></label><label>具体行动 <span class="subtle">可选</span><select id="task"><option value="">只关联项目</option></select></label></div>
+ <div class="selection"><label><select id="project" aria-label="projet" required><option value="">projet</option><option value="none">不关联项目</option></select></label><label><select id="task" aria-label="action"><option value="">action</option></select></label></div>
  <div class="dial-wrap"><div id="dial" class="dial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="107"/><circle id="progress" cx="120" cy="120" r="107"/></svg><div class="dial-text"><span id="phase">准备开始</span><strong id="clock" aria-label="剩余时间">25:00</strong><span id="elapsed">专注于眼前这一件事</span></div></div></div>
  <div id="recovery" class="recovery" hidden><p id="recovery-text"></p><div><button id="exclude">不计入，保持暂停</button><button id="include" class="quiet">计入离开时间</button></div></div>
  <div class="durations" aria-label="计划时长"><button data-minutes="25" class="selected">25 分钟</button><button data-minutes="45">45 分钟</button><button data-minutes="60">60 分钟</button><label class="custom"><input id="minutes" aria-label="自定义分钟" type="number" min="1" max="240" step="1" value="25">分钟</label></div>
