@@ -39,7 +39,7 @@ function persist() {
   } catch {
     ready = false;
     notify(
-      '浏览器无法保存记录。请在独立窗口中打开并允许本地存储；计时已锁定。'
+      'The browser cannot save records. Open the timer in a separate window and allow local storage; timing has been locked.'
     );
   }
 }
@@ -67,7 +67,7 @@ function read() {
   } catch {
     ready = false;
     notify(
-      '无法读取本地记录，请先备份浏览器数据；本次没有覆盖原记录。'
+      'Local records could not be read. Back up your browser data first; existing records were not overwritten.'
     );
   }
 }
@@ -105,16 +105,16 @@ function render() {
 
   $('phase').textContent = session
     ? {
-        running: '正在专注',
-        paused: '已暂停',
-        complete: '本段专注已完成',
-        review: '待确认离开时间'
+        running: 'Focusing',
+        paused: 'Paused',
+        complete: 'Session complete',
+        review: 'Review gap'
       }[session.status]
-    : '准备开始';
+    : 'Ready';
 
   $('elapsed').textContent = session
-    ? `已专注 ${clock(session.elapsedMs)}`
-    : '专注于眼前这一件事';
+    ? `Focused ${clock(session.elapsedMs)}`
+    : 'Focus on one thing';
 
   $('progress').style.strokeDashoffset = String(
     672.3 *
@@ -128,7 +128,7 @@ function render() {
     active && session.status !== 'paused';
 
   $('start').textContent =
-    active ? '继续专注' : '开始专注';
+    active ? 'Resume focus' : 'Start focus';
 
   $('pause').hidden =
     !active || session.status !== 'running';
@@ -143,6 +143,11 @@ function render() {
 
   $('discard').hidden = !active;
   $('discard').disabled = !ready;
+  if (!active && discardArmed) {
+    discardArmed = false;
+    clearTimeout(discardTimer);
+    $('discard').textContent = 'Discard session';
+  }
 
   $('project').disabled = active || !ready;
   $('task').disabled = active || !ready;
@@ -164,35 +169,35 @@ function render() {
 
   if (session?.status === 'review') {
     $('recovery-text').textContent =
-      `页面曾中断或离开 ${duration(
+      `The page was interrupted or left for ${duration(
         Math.floor(session.gapMs / 1000)
-      )}。这段时间是否仍在专注？确认后保持暂停，由你决定何时继续。`;
+      )}. Was this time still focused? After confirming, the timer stays paused until you decide to resume.`;
   }
 
   $('pending-box').hidden =
     data.pending.length === 0;
 
   $('pending-text').textContent =
-    `${data.pending.length} 条 · ${
+    `${data.pending.length} sessions · ${
       duration(
         data.pending.reduce(
           (sum, item) => sum + item.duration,
           0
         )
       )
-    } 待保存（尚未计入统计）`;
+    } pending save (not yet included in totals)`;
 
   $('retry').disabled = syncing || !owner;
 
   $('account').textContent =
-    owner ? '已连接 · 账户' : '连接记录';
+    owner ? 'Connected · Account' : 'Connect';
 
   document.title =
     session?.status === 'running'
       ? `${clock(
           session.targetMs - session.elapsedMs
-        )} · 专注`
-      : '专注 · Personal OS';
+        )} · Focus`
+      : 'Focus · Personal OS';
 }
 
 
@@ -209,7 +214,7 @@ function options(element, rows, label, selected) {
 
   if (element === $('project')) {
     element.add(
-      new Option('不关联项目', 'none')
+      new Option('No project', 'none')
     );
   }
 
@@ -338,14 +343,14 @@ async function api(path, body) {
       await response.json();
   } catch {
     throw Error(
-      '自动保存服务尚未连接。记录会保留在本浏览器，可导出备份。'
+      'Auto-save is not connected. Records will remain in this browser and can be exported as a backup.'
     );
   }
 
   if (!response.ok) {
     throw Error(
       result.message ||
-        '连接失败，记录仍保留在本地。'
+        'Connection failed. Records remain saved locally.'
     );
   }
 
@@ -397,9 +402,9 @@ function drawStats() {
   }
 
   $('stat-status').textContent =
-    'Notion 已保存 · ' +
+    'Saved to Notion · ' +
     new Date().toLocaleTimeString(
-      'zh-CN',
+      'en-GB',
       {
         hour: '2-digit',
         minute: '2-digit'
@@ -433,7 +438,7 @@ async function sync() {
 
       if (result.saved !== true) {
         throw Error(
-          '保存结果待确认，请保留此记录。'
+          'The save result is pending confirmation. Keep this record.'
         );
       }
 
@@ -449,7 +454,7 @@ async function sync() {
     await refresh();
 
     notify(
-      '已保存到 Notion，并关联当天日记录。'
+      'Saved to Notion and linked to today's daily record.'
     );
   } catch (error) {
     notify(error.message);
@@ -496,17 +501,34 @@ $('pause').onclick = () => {
 };
 
 
-$('discard').onclick = () => {
-  if (
-    confirm(
-      '放弃本段计时？本段不会保存到 Notion。'
-    )
-  ) {
-    data.session = null;
+let discardArmed = false;
+let discardTimer = null;
 
-    persist();
-    render();
+$('discard').onclick = () => {
+  if (!data.session) return;
+
+  if (!discardArmed) {
+    discardArmed = true;
+    $('discard').textContent = 'Confirm discard';
+    notify('Click “Confirm discard” again to remove this session without saving.');
+
+    clearTimeout(discardTimer);
+    discardTimer = setTimeout(() => {
+      discardArmed = false;
+      $('discard').textContent = 'Discard session';
+      render();
+    }, 5000);
+
+    return;
   }
+
+  clearTimeout(discardTimer);
+  discardArmed = false;
+  data.session = null;
+
+  persist();
+  notify('Session discarded.');
+  render();
 };
 
 
@@ -533,7 +555,7 @@ $('finish').onclick = () => {
       sync();
     } else {
       notify(
-        '本段已保存在此浏览器，连接后可同步到 Notion。清理浏览器数据前请导出备份。'
+        'This session is saved in this browser and can sync to Notion after connecting. Export a backup before clearing browser data.'
       );
     }
   } catch (error) {
@@ -703,7 +725,7 @@ $('login-form').onsubmit =
       await sync();
     } catch {
       $('login-error').textContent =
-        '访问密钥无效，或后台服务尚未完成配置。';
+        'The access key is invalid, or the backend service is not fully configured.';
     } finally {
       $('login-submit').disabled =
         false;
@@ -733,7 +755,7 @@ $('logout').onclick = () => {
   }
 
   $('stat-status').textContent =
-    '已断开连接，待保存记录仍保留在本浏览器';
+    'Disconnected. Pending records remain saved in this browser.';
 
   $('login-dialog').close();
 
@@ -793,7 +815,7 @@ async function boot() {
     }
   } else {
     notify(
-      '当前为本地计时。输入个人访问密钥后，可自动保存到 Notion。'
+      'Local timing mode. Enter your personal access key to save automatically to Notion.'
     );
   }
 
@@ -835,7 +857,7 @@ if (navigator.locks) {
     async lock => {
       if (!lock) {
         notify(
-          '计时器已在另一个窗口打开。请在那个窗口继续，避免重复计时。'
+          'The timer is already open in another window. Continue there to avoid duplicate timing.'
         );
 
         render();
@@ -851,7 +873,7 @@ if (navigator.locks) {
   );
 } else {
   notify(
-    '此浏览器不支持安全恢复计时，请使用近期版本的 Chrome、Safari 或 Firefox。'
+    'This browser does not support safe timer recovery. Use a recent version of Chrome, Safari, or Firefox.'
   );
 
   render();
