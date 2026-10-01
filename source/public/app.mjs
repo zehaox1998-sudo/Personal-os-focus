@@ -221,7 +221,7 @@ function setOptions() {
   options(
     $('project'),
     data.projects,
-    '选择项目',
+    'projet',
     data.session
       ? data.session.projectId || 'none'
       : $('project').value
@@ -239,7 +239,7 @@ function setTasks() {
     data.tasks.filter(
       task => task.projectId === projectId
     ),
-    '只关联项目',
+    'action',
     data.session?.taskId ||
       $('task').value
   );
