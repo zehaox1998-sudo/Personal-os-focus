@@ -5,13 +5,21 @@
 <div id="notice" role="status" aria-live="polite"></div>
 <section class="timer-card" aria-label="Focus timer">
  <div class="selection"><label><select id="project" aria-label="projet" required><option value="">projet</option><option value="none">No project</option></select></label><label><select id="task" aria-label="action"><option value="">action</option></select></label></div>
- <div class="dial-wrap"><div id="dial" class="dial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="107"/><circle id="progress" cx="120" cy="120" r="107"/></svg><div class="dial-text"><span id="phase">Ready</span><strong id="clock" aria-label="Time remaining">25:00</strong><span id="elapsed">Focus on one thing</span></div></div></div>
- <div id="recovery" class="recovery" hidden><p id="recovery-text"></p><div><button id="exclude">Exclude gap</button><button id="include" class="quiet">Include gap</button></div></div>
- <div class="durations" aria-label="Planned duration"><button data-minutes="25" class="selected">25 min</button><button data-minutes="45">45 min</button><button data-minutes="60">60 min</button><label class="custom"><input id="minutes" aria-label="Custom minutes" type="number" min="1" max="240" step="1" value="25">min</label></div>
- <div class="controls"><button id="start" class="primary">Start focus</button><button id="pause" hidden>Pause</button><button id="finish" class="quiet" hidden>Finish & save</button><button id="discard" class="quiet" hidden>Discard session</button></div>
+ <div class="focus-layout">
+  <div class="focus-main">
+   <div class="dial-wrap"><div id="dial" class="dial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="107"/><circle id="progress" cx="120" cy="120" r="107"/></svg><div class="dial-text"><span id="phase">Ready</span><strong id="clock" aria-label="Time remaining">25:00</strong><span id="elapsed">Focus on one thing</span></div></div></div>
+   <div id="recovery" class="recovery" hidden><p id="recovery-text"></p><div><button id="exclude">Exclude gap</button><button id="include" class="quiet">Include gap</button></div></div>
+   <div class="durations" aria-label="Planned duration"><button data-minutes="25" class="selected">25 min</button><button data-minutes="45">45 min</button><button data-minutes="60">60 min</button><label class="custom"><input id="minutes" aria-label="Custom minutes" type="number" min="1" max="240" step="1" value="25">min</label></div>
+   <div class="controls"><button id="start" class="primary">Start focus</button><button id="pause" hidden>Pause</button><button id="finish" class="quiet" hidden>Finish & save</button><button id="discard" class="quiet" hidden>Discard session</button></div>
+  </div>
+  <section class="records" aria-label="Saved focus statistics">
+   <div class="section-title"><h2>Focus totals</h2><span id="stat-status">Connect to load saved Notion sessions</span></div>
+   <div class="stats"><div><span>Today</span><strong id="today">—</strong></div><div><span>This week</span><strong id="week">—</strong></div><div><span>This month</span><strong id="month">—</strong></div><div><span>This year</span><strong id="year">—</strong></div></div>
+   <div id="pending-box" hidden><span id="pending-text"></span><div><button id="retry" class="quiet">Retry save</button><button id="export" class="quiet">Export backup</button></div></div>
+  </section>
+ </div>
  <div class="timer-foot"><label><input type="checkbox" id="sound" checked> End chime</label><span>Paused time is not counted · Actions are not auto-completed</span></div>
 </section>
-<section class="records" aria-label="Saved focus statistics"><div class="section-title"><h2>Focus totals</h2><span id="stat-status">Connect to load saved Notion sessions</span></div><div class="stats"><div><span>Today</span><strong id="today">—</strong></div><div><span>This week</span><strong id="week">—</strong></div><div><span>This month</span><strong id="month">—</strong></div><div><span>This year</span><strong id="year">—</strong></div></div><div id="pending-box" hidden><span id="pending-text"></span><div><button id="retry" class="quiet">Retry save</button><button id="export" class="quiet">Export backup</button></div></div></section>
 <footer>Paris time · Sessions crossing midnight belong to their start date · Weeks begin on Monday.<br>Chimes may be delayed while the page or computer is asleep.<a href="./" target="_blank" rel="noopener">Open in a separate window ↗</a></footer>
 <dialog id="login-dialog">
  <form id="login-form">
