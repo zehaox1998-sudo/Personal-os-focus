@@ -15,13 +15,13 @@ async function unique(rows,what){if(rows.length>1)throw new FocusError(`${what} 
 // Claims never expire automatically: a timeout can happen after Notion committed a page.
 // Retry reconciles by stable ID; if absent, require inspection rather than blindly recreating.
 async function dayFor(date,n,receipts){
- let found=await unique(await n.days(date),'today's daily record');if(found)return found.id;
+ let found=await unique(await n.days(date),"today's daily record");if(found)return found.id;
  const key='day/'+date,claimToken=randomUUID(),result=await receipts.setJSON(key,{phase:'creating',claimToken},{onlyIfNew:true});
- if(!result.modified){found=await unique(await n.days(date),'today's daily record');if(found)return found.id;throw new FocusError('today's daily record的创建结果待核对。请稍后重试；若持续出现，请检查后台创建回执。');}
+ if(!result.modified){found=await unique(await n.days(date),"today's daily record");if(found)return found.id;throw new FocusError('today's daily record的创建结果待核对。请稍后重试；若持续出现，请检查后台创建回执。');}
  // Verify persisted claim before crossing the external side-effect boundary.
  if((await receipts.get(key,{type:'json'}))?.claimToken!==claimToken)throw new FocusError('The save service could not confirm the daily-record creation lock. Try again later.',503);
- found=await unique(await n.days(date),'today's daily record');if(found)return found.id;
- try{const page=await n.createDay(date);await receipts.setJSON(key,{phase:'saved',pageId:page.id});await unique(await n.days(date),'today's daily record');return page.id;}catch(e){if(e instanceof FocusError)throw e;throw new FocusError('The daily-record save result is not yet confirmed. The local record was kept; retrying later will verify first to avoid duplicates.',503);}
+ found=await unique(await n.days(date),"today's daily record");if(found)return found.id;
+ try{const page=await n.createDay(date);await receipts.setJSON(key,{phase:'saved',pageId:page.id});await unique(await n.days(date),"today's daily record");return page.id;}catch(e){if(e instanceof FocusError)throw e;throw new FocusError('The daily-record save result is not yet confirmed. The local record was kept; retrying later will verify first to avoid duplicates.',503);}
 }
 export async function saveSession(input,{notion:n,receipts,now=Date.now()}){
  const s=validate(input,now),hash=fingerprint(s),key='session/'+s.id;
