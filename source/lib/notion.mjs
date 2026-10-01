@@ -11,19 +11,19 @@ export function notionClient(env,fetcher=fetch){
    const response=await fetcher('https://api.notion.com/v1/'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,'Notion-Version':'2025-09-03','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});
    if(response.ok)return response.json();
    if(read&&(response.status===429||response.status>=500)&&attempt<2){await new Promise(r=>setTimeout(r,Math.min(3000,Number(response.headers.get('retry-after')||1)*1000)));continue;}
-   throw new FocusError(response.status===401||response.status===403||response.status===404?'Notion 连接或数据库授权未完成，请检查后台配置。':'Notion 暂时无法处理请求，记录仍保留在本地。',503);
+   throw new FocusError(response.status===401||response.status===403||response.status===404?'The Notion connection or database authorization is incomplete. Check the backend configuration.':'Notion cannot process the request right now. Records remain saved locally.',503);
   }
  }
- async function query(source,filter){let rows=[],cursor;do{const r=await request(`data_sources/${source}/query`,{filter,page_size:100,...(cursor?{start_cursor:cursor}:{})},true);rows.push(...r.results);cursor=r.has_more?r.next_cursor:null;if(rows.length>20000)throw new FocusError('记录数量超过本版统计上限，请分期读取，当前未显示部分统计。',503);}while(cursor);return rows;}
+ async function query(source,filter){let rows=[],cursor;do{const r=await request(`data_sources/${source}/query`,{filter,page_size:100,...(cursor?{start_cursor:cursor}:{})},true);rows.push(...r.results);cursor=r.has_more?r.next_cursor:null;if(rows.length>20000)throw new FocusError('The number of records exceeds this version's statistics limit. Read them in smaller ranges; some totals are currently omitted.',503);}while(cursor);return rows;}
  const eq=(property,kind,value)=>({property,[kind]:{equals:value}});
  const parseSession=p=>({id:p.id,session:{id:rich(p,'Session ID'),startedAt:p.properties['Start Time']?.date?.start,endedAt:p.properties['End Time']?.date?.start,duration:p.properties.Duration?.number,projectId:relation(p,'Project'),taskId:relation(p,'Action'),noProject:p.properties['No Project']?.checkbox}});
- async function validatePage(id,source){const p=await request('pages/'+id,undefined,true);if(p.archived||p.in_trash||cleanId(p.parent?.data_source_id)!==cleanId(source))throw new FocusError('关联条目不在允许的数据库中或已删除。',400);return p;}
+ async function validatePage(id,source){const p=await request('pages/'+id,undefined,true);if(p.archived||p.in_trash||cleanId(p.parent?.data_source_id)!==cleanId(source))throw new FocusError('The linked item is not in an allowed database or has been deleted.',400);return p;}
  return {
-  async validateLinks(s){if(s.projectId)await validatePage(s.projectId,ids.projects);if(s.taskId){const p=await validatePage(s.taskId,ids.actions);if(!(p.properties.Project?.relation||[]).some(x=>cleanId(x.id)===cleanId(s.projectId)))throw new FocusError('行动与所选项目不匹配。',400);}},
+  async validateLinks(s){if(s.projectId)await validatePage(s.projectId,ids.projects);if(s.taskId){const p=await validatePage(s.taskId,ids.actions);if(!(p.properties.Project?.relation||[]).some(x=>cleanId(x.id)===cleanId(s.projectId)))throw new FocusError('The Action does not belong to the selected Project.',400);}},
   days:date=>query(ids.daily,{and:[eq('Type','select','Day'),eq('Date','date',date)]}),
   sessionsById:async id=>(await query(ids.focus,eq('Session ID','rich_text',id))).map(parseSession),
   createDay:date=>request('pages',{parent:{type:'data_source_id',data_source_id:ids.daily},properties:{'日期':{title:text(date)},Type:{select:{name:'Day'}},Date:{date:{start:date}},'日记':{checkbox:true},'周报':{checkbox:false}}}),
-  createSession:(s,dailyId)=>request('pages',{parent:{type:'data_source_id',data_source_id:ids.focus},properties:{Session:{title:text(`${s.date} · ${Math.round(s.duration/60*10)/10} 分钟`)},'Session ID':{rich_text:text(s.id)},Date:{date:{start:s.date}},'Start Time':{date:{start:s.startedAt}},'End Time':{date:{start:s.endedAt}},Duration:{number:s.duration},Project:{relation:s.projectId?[{id:s.projectId}]:[]},Daily:{relation:[{id:dailyId}]},Action:{relation:s.taskId?[{id:s.taskId}]:[]},'No Project':{checkbox:s.noProject}}}),
+  createSession:(s,dailyId)=>request('pages',{parent:{type:'data_source_id',data_source_id:ids.focus},properties:{Session:{title:text(`${s.date} · ${Math.round(s.duration/60*10)/10} min`)},'Session ID':{rich_text:text(s.id)},Date:{date:{start:s.date}},'Start Time':{date:{start:s.startedAt}},'End Time':{date:{start:s.endedAt}},Duration:{number:s.duration},Project:{relation:s.projectId?[{id:s.projectId}]:[]},Daily:{relation:[{id:dailyId}]},Action:{relation:s.taskId?[{id:s.taskId}]:[]},'No Project':{checkbox:s.noProject}}}),
   async bootstrap(now=Date.now()){
    const projects=await query(ids.projects,eq('State','select','Active'));
    const tasks=await query(ids.actions,{or:['Next','Doing','Waiting'].map(v=>eq('Status','select',v))});
