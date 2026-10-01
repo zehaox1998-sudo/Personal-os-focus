@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {saveSession,validate} from '../lib/service.mjs';
+const payload=()=>({id:crypto.randomUUID(),startedAt:'2026-09-30T21:59:00.000Z',endedAt:'2026-09-30T22:10:00.000Z',duration:600,projectId:null,taskId:null,noProject:true});
+function fixture(){const blobs=new Map(),days=[],sessions=[];let creations=0;
+ const receipts={get:async k=>blobs.get(k)||null,setJSON:async(k,v,options)=>{if(options?.onlyIfNew&&blobs.has(k))return {modified:false};blobs.set(k,structuredClone(v));return {modified:true};}};
+ const notion={validateLinks:async()=>{},days:async date=>days.filter(d=>d.date===date),createDay:async date=>{const p={id:crypto.randomUUID(),date};days.push(p);return p;},sessionsById:async id=>sessions.filter(p=>p.session.id===id),createSession:async(s,dailyId)=>{creations++;const p={id:crypto.randomUUID(),session:s,dailyId};sessions.push(p);return p;}};
+ return {receipts,notion,days,sessions,blobs,count:()=>creations};}
+test('session date uses Paris start day, even after midnight',()=>{assert.equal(validate(payload()).date,'2026-09-30');});
+test('retry is idempotent and links exactly one daily',async()=>{const f=fixture(),p=payload();const a=await saveSession(p,f),b=await saveSession(p,f);assert.deepEqual(a,b);assert.equal(f.count(),1);assert.equal(f.days.length,1);assert.equal(f.sessions[0].dailyId,f.days[0].id);});
+test('concurrent duplicate requests cannot create two sessions or daily pages',async()=>{const f=fixture(),p=payload();await Promise.allSettled([saveSession(p,f),saveSession(p,f),saveSession(p,f)]);assert.equal(f.count(),1);assert.equal(f.days.length,1);assert.equal((await saveSession(p,f)).saved,true);});
+test('concurrent different sessions share a daily after retry',async()=>{const f=fixture(),a=payload(),b=payload();await Promise.allSettled([saveSession(a,f),saveSession(b,f)]);await saveSession(a,f);await saveSession(b,f);assert.equal(f.count(),2);assert.equal(f.days.length,1);});
+test('timeout after Notion accepted a write reconciles without second create',async()=>{const f=fixture(),p=payload(),original=f.notion.createSession;f.notion.createSession=async(...args)=>{await original(...args);throw Error('lost response');};await assert.rejects(saveSession(p,f));assert.equal((await saveSession(p,f)).saved,true);assert.equal(f.count(),1);});
+test('unresolved create timeout remains pending and never blindly retries',async()=>{const f=fixture(),p=payload();let attempts=0;f.notion.createSession=async()=>{attempts++;throw Error('network unknown');};await assert.rejects(saveSession(p,f));await assert.rejects(saveSession(p,f));assert.equal(attempts,1);});
+test('two daily records conflict before any focus record is created',async()=>{const f=fixture();f.days.push({id:'a',date:'2026-09-30'},{id:'b',date:'2026-09-30'});await assert.rejects(saveSession(payload(),f),/重复/);assert.equal(f.count(),0);});
+test('same ID with modified duration is rejected',async()=>{const f=fixture(),p=payload();await saveSession(p,f);await assert.rejects(saveSession({...p,duration:500},f),/冲突/);assert.equal(f.count(),1);});
+test('Notion canonicalizes timestamps without breaking reconciliation',async()=>{const f=fixture(),p=payload();f.sessions.push({id:'saved',session:{...p,startedAt:'2026-09-30T21:59:00+00:00',endedAt:'2026-09-30T22:10:00+00:00'}});assert.equal((await saveSession(p,f)).saved,true);assert.equal(f.count(),0);});
+test('rejects duration inflation, invalid links, and future clock',()=>{for(const update of [{duration:99999},{duration:-2},{projectId:'invalid',noProject:false},{taskId:crypto.randomUUID()},{endedAt:'2099-01-01T00:00Z'}])assert.throws(()=>validate({...payload(),...update}));});

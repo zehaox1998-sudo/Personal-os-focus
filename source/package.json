@@ -1,0 +1,1 @@
+{"name":"personal-os-focus","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test test/*.test.mjs","build":"node build.mjs","dev":"netlify dev"},"dependencies":{"@netlify/blobs":"10.5.0","@netlify/identity":"latest"},"devDependencies":{"@netlify/functions":"latest","esbuild":"latest","netlify-cli":"latest","typescript":"latest"}}
