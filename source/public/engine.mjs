@@ -13,13 +13,28 @@ export function newSession({minutes,projectId,taskId=null}, now=Date.now(), id=c
   if(!projectId) throw Error('Please select a Project or choose “No project”.');
   return {id,startedAt:now,checkpoint:now,elapsedMs:0,targetMs:minutes*60000,status:'running',projectId:projectId==='none'?null:projectId,taskId,noProject:projectId==='none'};
 }
-// A long timer gap may be a suspended tab or device sleep. Never infer focus silently.
-export function tick(s,now=Date.now(),forceRecovery=false) {
-  if(!s||s.status!=='running') return s;
-  const gap=now-s.checkpoint;
-  if(forceRecovery||gap<0||gap>15000) return {...s,status:'review',gapMs:Math.max(0,gap),reviewAt:now};
-  const elapsedMs=Math.min(s.targetMs,s.elapsedMs+gap);
-  return {...s,elapsedMs,checkpoint:now,status:elapsedMs>=s.targetMs?'complete':'running'};
+// While a session is running, elapsed real time always counts.
+// Switching tabs, minimizing the browser, device sleep, or reopening the page
+// must not pause the timer or require focus review.
+export function tick(s, now=Date.now(), forceRecovery=false) {
+  if (!s || s.status !== 'running') return s;
+
+  const gap = Math.max(0, now - s.checkpoint);
+
+  const elapsedMs = Math.min(
+    s.targetMs,
+    s.elapsedMs + gap
+  );
+
+  return {
+    ...s,
+    elapsedMs,
+    checkpoint: now,
+    status:
+      elapsedMs >= s.targetMs
+        ? 'complete'
+        : 'running'
+  };
 }
 export function resolveGap(s,include,now=Date.now()) {
   if(s.status!=='review') return s;
